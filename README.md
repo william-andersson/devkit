@@ -1,7 +1,10 @@
 # DevKit
 
 ### Install
-From directory devkit-1.1 **`sudo ./install.sh`**
+From directory **devkit-1.1** run **`sudo ./install.sh`**<br>
+> [!IMPORTANT]
+> DevKit is only installable via pre-built package (devkit-1.1)<br>
+
 
 ### Settings
 Change settings in: ```/usr/local/etc/devkit.conf```
