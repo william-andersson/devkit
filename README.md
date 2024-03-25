@@ -1,7 +1,7 @@
 # DevKit
 
 ### Install
-**`sudo ./install.sh`**
+From directory devkit-1.1 **`sudo ./install.sh`**
 
 ### Settings
 Change settings in: ```/usr/local/etc/devkit.conf```
