@@ -6,12 +6,12 @@
 # Website:     https://github.com/william-andersson
 # License:     GPL
 #
-VERSION=1.0
+VERSION=#(SET BY: build.cfg)
 source /usr/local/etc/devkit.conf
 
 func_help(){
 cat <<EOF
-Shell-script development manager.
+DevKit $VERSION (Shell-script project manager).
 Usage: $0 <OPTION>
 
 Options:
@@ -56,7 +56,7 @@ endmsg
 cat > $PWD/$NAME/build.cfg <<endmsg
 APP_NAME=$NAME
 APP_VERSION=1.0
-INSTALLED_PATH=("main.sh;/bin/" "README;/")
+INSTALLED_PATH=("main.sh;/bin/$NAME" "README;/")
 DEPENDENCIES=("")
 endmsg
 }
@@ -75,7 +75,7 @@ func_snap(){
 		echo "Creating directory [$PWD/builds/src] ..."
 		mkdir -p $PWD/builds/src
 	fi
-	if [ -f "$PWD/builds/src/$APP_NAME-$APP_VERSION.tar" ];then
+	if [ -f "$PWD/builds/src/$APP_NAME-$APP_VERSION-src.tar" ];then
 		echo -e "\033[31mWarning, a source package with version $APP_VERSION already exists!\033[0m"
 		read -p "Overwrite [y/n]? " QUEST
 		if [ $QUEST != "y" ];then
@@ -87,7 +87,7 @@ func_snap(){
 	# Make archive
 	#
 	echo "Creating source package of current version ($APP_VERSION)."
-	tar --exclude='builds' -cpvf $PWD/builds/src/$APP_NAME-$APP_VERSION.tar *
+	tar --exclude='builds' -cpvf $PWD/builds/src/$APP_NAME-$APP_VERSION-src.tar *
 }
 
 func_build(){
@@ -105,7 +105,7 @@ func_build(){
 		echo "Creating directory [$PWD/builds/pkg] ..."
 		mkdir -p $PWD/builds/pkg
 	fi
-	if [ -f "$PWD/builds/pkg/$APP_NAME-$APP_VERSION" ] || [ -f "$PWD/builds/pkg/$APP_NAME-$APP_VERSION.pkg" ];then
+	if [ -d "$PWD/builds/pkg/$APP_NAME-$APP_VERSION" ] || [ -f "$PWD/builds/pkg/$APP_NAME-$APP_VERSION.pkg" ];then
 		echo -e "\033[31mWarning, a package with version $APP_VERSION already exists!\033[0m"
 		read -p "Overwrite [y/n]? " QUEST
 		if [ $QUEST != "y" ];then
@@ -124,12 +124,12 @@ func_build(){
 	echo "Dependencies: $DEPENDENCIES" >> $PWD/builds/pkg/$APP_NAME-$APP_VERSION/PKG_INFO
 	for path in ${INSTALLED_PATH[@]};do
 		IFS=';' read -ra values <<< "$path"
-		if [ "${values[0]}" == "main.sh" ];then
+		if [ "${values[0]}" == "main.sh" ] || [ "${values[0]}" == "devkit.sh" ];then
 			#
 			# If main.sh change VERSION to APP_VERSION
 			#
-			install -v -D -C -m 775 ${values[0]} $PWD/builds/pkg/$APP_NAME-$APP_VERSION${values[1]}$APP_NAME
-			sed -i 's/#(SET BY: build.cfg)/'$APP_VERSION'/' $PWD/builds/pkg/$APP_NAME-$APP_VERSION${values[1]}/$APP_NAME
+			install -v -D -C -m 775 ${values[0]} $PWD/builds/pkg/$APP_NAME-$APP_VERSION${values[1]}
+			sed -i '0,/#(SET BY: build.cfg)/s//'$APP_VERSION'/' $PWD/builds/pkg/$APP_NAME-$APP_VERSION${values[1]}
 		elif [[ "${values[0]}" == *".sh"* ]];then
 			install -v -D -C -m 775 ${values[0]} $PWD/builds/pkg/$APP_NAME-$APP_VERSION${values[1]}
 		else
@@ -140,18 +140,23 @@ func_build(){
 	# Change directory and make archive,
 	# removing directory when done.
 	#
-	echo "Changing directory $PWD/builds/pkg"
-	cd $PWD/builds/pkg
-	tar -cpvf $APP_NAME-$APP_VERSION.pkg $APP_NAME-$APP_VERSION
-	echo "Removing temporary directory $PWD/builds/pkg/$APP_NAME-$APP_VERSION"
-	rm -r $APP_NAME-$APP_VERSION
-	if [ "$REPO_PATH" != "" ];then
-		if [ ! -d "$REPO_PATH" ];then
-			echo "Creating directory [$REPO_PATH] ..."
-			mkdir -p $REPO_PATH
+	if [ "$APP_NAME" != "devkit" ];then
+		#
+		# Don't package devkit
+		#
+		echo "Changing directory $PWD/builds/pkg"
+		cd $PWD/builds/pkg
+		tar -cpvf $APP_NAME-$APP_VERSION.pkg $APP_NAME-$APP_VERSION
+		echo "Removing temporary directory $PWD/builds/pkg/$APP_NAME-$APP_VERSION"
+		rm -r $APP_NAME-$APP_VERSION
+		if [ "$REPO_PATH" != "" ];then
+			if [ ! -d "$REPO_PATH" ];then
+				echo "Creating directory [$REPO_PATH] ..."
+				mkdir -p $REPO_PATH
+			fi
+			echo "Copying package to repo ..."
+			cp -v $APP_NAME-$APP_VERSION.pkg $REPO_PATH/$APP_NAME-$APP_VERSION.pkg
 		fi
-		echo "Copying package to repo ..."
-		cp -v $APP_NAME-$APP_VERSION.pkg $REPO_PATH/$APP_NAME-$APP_VERSION.pkg
 	fi
 }
 
