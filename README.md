@@ -5,7 +5,7 @@
 
 ### Settings
 Change settings in: ```/usr/local/etc/devkit.conf```
-##### Defaults<br>
+##### Default settings<br>
 > INSTALL_PREFIX="/usr/local"<br>
 > REPO_PATH=""
 
