@@ -151,7 +151,7 @@ func_build(){
 			mkdir -p $REPO_PATH
 		fi
 		echo "Copying package to repo ..."
-		cp -v $APP_NAME-$APP_VERSION.pkg $REPO_PATH/$APP_NAME.pkg
+		cp -v $APP_NAME-$APP_VERSION.pkg $REPO_PATH/$APP_NAME-$APP_VERSION.pkg
 	fi
 }
 
@@ -219,7 +219,7 @@ func_repo_install(){
 		fi
 	done
 	echo "Removing temporary directory $NAME"
-	rm -r $NAME
+	rm -r $REPO_PATH/$NAME
 }
 
 case $1 in
