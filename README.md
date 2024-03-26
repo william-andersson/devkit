@@ -31,5 +31,6 @@ If REPO_PATH is set in /usr/local/etc/devkit.conf
 > ### Version 2
 > * Places both snapshots and builds in the same directory.
 > * New package and install structure.
+> * Renamed and added variables in build.cfg
 > * Code clean up
 > * Bug fixes
