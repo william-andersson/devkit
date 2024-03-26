@@ -26,3 +26,10 @@ If REPO_PATH is set in /usr/local/etc/devkit.conf
 --repo-list                  List packages in local repository.
 --repo-install <PACKAGE>     Install package from local repository.
 ```
+
+> [!NOTE]
+> ### Version 2
+> * Places both snapshots and builds in the same directory.
+> * New package and install structure.
+> * Code clean up
+> * Bug fixes
