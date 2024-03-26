@@ -6,7 +6,7 @@
 # Website:     https://github.com/william-andersson
 # License:     GPL
 #
-VERSION=2.1
+VERSION=2.2
 source /usr/local/etc/devkit.conf
 echo "DevKit $VERSION (Shell-script project manager)"
 
@@ -109,15 +109,13 @@ func_build(){
 	if [ ! -d "$PWD/builds/$APP_NAME-$APP_VERSION" ];then
 		mkdir -pv $PWD/builds/$APP_NAME-$APP_VERSION
 	fi
-	if [ -d "$PWD/builds/$APP_NAME-$APP_VERSION/content" ];then
+	if [ -f "$PWD/builds/$APP_NAME-$APP_VERSION/$APP_NAME-$APP_VERSION.pkg" ];then
 		echo -e "\033[31mWarning, a package with version $APP_VERSION already exists!\033[0m"
 		read -p "Overwrite [y/n]? " QUEST
 		if [ $QUEST != "y" ];then
 			echo -e "\nAborted."
 			exit 1
 		else
-			rm -rv $PWD/builds/$APP_NAME-$APP_VERSION/content
-			rm -rv $PWD/builds/$APP_NAME-$APP_VERSION/install.sh
 			rm -rv $PWD/builds/$APP_NAME-$APP_VERSION/$APP_NAME-$APP_VERSION.pkg
 			rm -rv $PWD/builds/$APP_NAME-$APP_VERSION/$APP_NAME-$APP_VERSION-src.tar
 		fi
@@ -168,19 +166,17 @@ endmsg
 	#
 	echo "Copying current source version ($APP_VERSION)."
 	tar --exclude='builds' -cvf $PWD/builds/$APP_NAME-$APP_VERSION/$APP_NAME-$APP_VERSION-src.tar *
-	if [ "$APP_NAME" != "devkit" ];then
-		#
-		# Don't package devkit
-		#
-		cd $PWD/builds/$APP_NAME-$APP_VERSION
-		tar -cvf $APP_NAME-$APP_VERSION.pkg content install.sh
-		if [ "$REPO_PATH" != "" ];then
-			if [ ! -d "$REPO_PATH" ];then
-				mkdir -pv $REPO_PATH
-			fi
-			cp -pv $APP_NAME-$APP_VERSION.pkg $REPO_PATH/$APP_NAME-$APP_VERSION.pkg
+	cd $PWD/builds/$APP_NAME-$APP_VERSION
+	tar -cvf $APP_NAME-$APP_VERSION.pkg content install.sh
+	if [ "$REPO_PATH" != "" ];then
+		if [ ! -d "$REPO_PATH" ];then
+			mkdir -pv $REPO_PATH
 		fi
+		cp -pv $APP_NAME-$APP_VERSION.pkg $REPO_PATH/$APP_NAME-$APP_VERSION.pkg
 	fi
+	cd ../..
+	rm -rv $PWD/builds/$APP_NAME-$APP_VERSION/content
+	rm -rv $PWD/builds/$APP_NAME-$APP_VERSION/install.sh
 }
 
 func_install(){
