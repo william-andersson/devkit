@@ -8,10 +8,10 @@
 #
 VERSION=#(SET BY: build.cfg)
 source /usr/local/etc/devkit.conf
+echo "DevKit $VERSION (Shell-script project manager)"
 
 func_help(){
 cat <<EOF
-DevKit $VERSION (Shell-script project manager).
 Usage: $0 <OPTION>
 
 Options:
@@ -38,10 +38,12 @@ func_new(){
 	else
 		NAME=$1
 	fi
-	mkdir $PWD/$NAME
+	mkdir -v $PWD/$NAME
+	touch $PWD/$NAME/NOTES
 	touch $PWD/$NAME/README
 	touch $PWD/$NAME/CHANGELOG
-cat > $PWD/$NAME/main.sh <<endmsg
+	
+cat > $PWD/$NAME/$NAME.sh <<endmsg
 #!/bin/bash
 #
 # Application: $NAME
@@ -54,9 +56,16 @@ VERSION=#(SET BY: build.cfg)
 endmsg
 	
 cat > $PWD/$NAME/build.cfg <<endmsg
+#
+# DevKit build file
+# STATIC_FILES = file names and installed paths (always install)
+# ACTIVE_FILES = file names and installed paths (install if not exist) 
+# DEPENDENCIES = list of dependencies
+#
 APP_NAME=$NAME
 APP_VERSION=1.0
-INSTALLED_PATH=("main.sh;/bin/$NAME" "README;/")
+STATIC_FILES=("$NAME.sh;/usr/local/bin/$NAME")
+ACTIVE_FILES=("")
 DEPENDENCIES=("")
 endmsg
 }
@@ -71,23 +80,20 @@ func_snap(){
 	else
 		source $PWD/build.cfg
 	fi
-	if [ ! -d "$PWD/builds/src" ];then
-		echo "Creating directory [$PWD/builds/src] ..."
-		mkdir -p $PWD/builds/src
+	if [ ! -d "$PWD/builds/$APP_NAME-$APP_VERSION" ];then
+		mkdir -pv $PWD/builds/$APP_NAME-$APP_VERSION
 	fi
-	if [ -f "$PWD/builds/src/$APP_NAME-$APP_VERSION-src.tar" ];then
-		echo -e "\033[31mWarning, a source package with version $APP_VERSION already exists!\033[0m"
-		read -p "Overwrite [y/n]? " QUEST
-		if [ $QUEST != "y" ];then
-			echo -e "\nAborted."
-			exit 1
-		fi
+	if [ ! -d "$PWD/builds/$APP_NAME-$APP_VERSION/snapshots" ];then
+		mkdir -pv $PWD/builds/$APP_NAME-$APP_VERSION/snapshots
+		echo "1" > $PWD/builds/$APP_NAME-$APP_VERSION/snapshots/index
 	fi
 	#
 	# Make archive
 	#
-	echo "Creating source package of current version ($APP_VERSION)."
-	tar --exclude='builds' -cpvf $PWD/builds/src/$APP_NAME-$APP_VERSION-src.tar *
+	echo "Creating snapshot of current version ($APP_VERSION)."
+	INDEX=$(cat $PWD/builds/$APP_NAME-$APP_VERSION/snapshots/index)
+	tar --exclude='builds' -cvf $PWD/builds/$APP_NAME-$APP_VERSION/snapshots/snapshot-$INDEX.tar *
+	echo "$((INDEX+1))" > $PWD/builds/$APP_NAME-$APP_VERSION/snapshots/index
 }
 
 func_build(){
@@ -99,64 +105,71 @@ func_build(){
 		exit 1
 	else
 		source $PWD/build.cfg
-		TIMESTAMP=$(date +%d-%m-%Y)
 	fi
-	if [ ! -d "$PWD/builds/pkg" ];then
-		echo "Creating directory [$PWD/builds/pkg] ..."
-		mkdir -p $PWD/builds/pkg
+	if [ ! -d "$PWD/builds/$APP_NAME-$APP_VERSION" ];then
+		mkdir -pv $PWD/builds/$APP_NAME-$APP_VERSION
 	fi
-	if [ -d "$PWD/builds/pkg/$APP_NAME-$APP_VERSION" ] || [ -f "$PWD/builds/pkg/$APP_NAME-$APP_VERSION.pkg" ];then
+	if [ -f "$PWD/builds/$APP_NAME-$APP_VERSION/$APP_NAME-$APP_VERSION.pkg" ];then
 		echo -e "\033[31mWarning, a package with version $APP_VERSION already exists!\033[0m"
 		read -p "Overwrite [y/n]? " QUEST
 		if [ $QUEST != "y" ];then
 			echo -e "\nAborted."
 			exit 1
+		else
+			rm -rv $PWD/builds/$APP_NAME-$APP_VERSION/content
+			rm -rv $PWD/builds/$APP_NAME-$APP_VERSION/INSTALL
+			rm -rv $PWD/builds/$APP_NAME-$APP_VERSION/$APP_NAME-$APP_VERSION.pkg
 		fi
 	fi
 	#
 	# Create directory and add files.
-	# Write package header PKG_INFO
 	#
 	echo "Building package of current version ($APP_VERSION)."
-	mkdir $PWD/builds/pkg/$APP_NAME-$APP_VERSION
-	echo "Package name: $APP_NAME-$APP_VERSION.tar" > $PWD/builds/pkg/$APP_NAME-$APP_VERSION/PKG_INFO
-	echo "Build date: $TIMESTAMP" >> $PWD/builds/pkg/$APP_NAME-$APP_VERSION/PKG_INFO
-	echo "Dependencies: $DEPENDENCIES" >> $PWD/builds/pkg/$APP_NAME-$APP_VERSION/PKG_INFO
-	for path in ${INSTALLED_PATH[@]};do
+	mkdir -v $PWD/builds/$APP_NAME-$APP_VERSION/content
+	for path in ${STATIC_FILES[@]};do
 		IFS=';' read -ra values <<< "$path"
-		if [ "${values[0]}" == "main.sh" ] || [ "${values[0]}" == "devkit.sh" ];then
+		if [ "${values[0]}" == "$APP_NAME.sh" ];then
 			#
-			# If main.sh change VERSION to APP_VERSION
+			# Prepare STATIC_FILES; Always install
+			# If $NAME.sh change VERSION to APP_VERSION
 			#
-			install -v -D -C -m 775 ${values[0]} $PWD/builds/pkg/$APP_NAME-$APP_VERSION${values[1]}
-			sed -i '0,/#(SET BY: build.cfg)/s//'$APP_VERSION'/' $PWD/builds/pkg/$APP_NAME-$APP_VERSION${values[1]}
-		elif [[ "${values[0]}" == *".sh"* ]];then
-			install -v -D -C -m 775 ${values[0]} $PWD/builds/pkg/$APP_NAME-$APP_VERSION${values[1]}
+			echo "install -v -D -C devkit.in/content/${values[0]} ${values[1]}" >> $PWD/builds/$APP_NAME-$APP_VERSION/INSTALL
+			cp -v ${values[0]} $PWD/builds/$APP_NAME-$APP_VERSION/content
+			sed -i '0,/#(SET BY: build.cfg)/s//'$APP_VERSION'/' $PWD/builds/$APP_NAME-$APP_VERSION/content/$APP_NAME.sh
 		else
-			install -v -D -C -m 664 ${values[0]} $PWD/builds/pkg/$APP_NAME-$APP_VERSION${values[1]}
+			echo "install -v -D -C devkit.in/content/${values[0]} ${values[1]}" >> $PWD/builds/$APP_NAME-$APP_VERSION/INSTALL
+			cp -v ${values[0]} $PWD/builds/$APP_NAME-$APP_VERSION/content
 		fi
+	done
+	for path in ${ACTIVE_FILES[@]};do
+		#
+		# Prepare ACTIVE_FILES; Install if none exist
+		#
+		IFS=';' read -ra values <<< "$path"
+		echo "cp -pnv devkit.in/content/${values[0]} ${values[1]}" >> $PWD/builds/$APP_NAME-$APP_VERSION/INSTALL
+		cp -v ${values[0]} $PWD/builds/$APP_NAME-$APP_VERSION/content
 	done
 	#
 	# Change directory and make archive,
 	# removing directory when done.
 	#
+	echo "Copying current source version ($APP_VERSION)."
+	tar --exclude='builds' -cvf $PWD/builds/$APP_NAME-$APP_VERSION/$APP_NAME-$APP_VERSION-src.tar *
 	if [ "$APP_NAME" != "devkit" ];then
 		#
 		# Don't package devkit
 		#
-		echo "Changing directory $PWD/builds/pkg"
-		cd $PWD/builds/pkg
-		tar -cpvf $APP_NAME-$APP_VERSION.pkg $APP_NAME-$APP_VERSION
-		echo "Removing temporary directory $PWD/builds/pkg/$APP_NAME-$APP_VERSION"
-		rm -r $APP_NAME-$APP_VERSION
+		cd $PWD/builds/$APP_NAME-$APP_VERSION
+		tar -cvf $APP_NAME-$APP_VERSION.pkg content INSTALL
 		if [ "$REPO_PATH" != "" ];then
 			if [ ! -d "$REPO_PATH" ];then
-				echo "Creating directory [$REPO_PATH] ..."
-				mkdir -p $REPO_PATH
+				mkdir -pv $REPO_PATH
 			fi
-			echo "Copying package to repo ..."
-			cp -v $APP_NAME-$APP_VERSION.pkg $REPO_PATH/$APP_NAME-$APP_VERSION.pkg
+			cp -pv $APP_NAME-$APP_VERSION.pkg $REPO_PATH/$APP_NAME-$APP_VERSION.pkg
 		fi
+	else
+		# Copy DevKit install file
+		cp -v install.sh $PWD/builds/$APP_NAME-$APP_VERSION/
 	fi
 }
 
@@ -175,14 +188,10 @@ func_install(){
 		fi
 	fi
 	NAME="${FILE%.*}"
-	tar -xf $FILE
-	for file in "$PWD/$NAME"/*;do
-		if [ -d "$file" ];then
-			cp -rPv $file $INSTALL_PREFIX/
-		fi
-	done
-	echo "Removing temporary directory $NAME"
-	rm -r $NAME
+	mkdir -v devkit.in
+	tar -xf $FILE -C devkit.in
+	source devkit.in/INSTALL
+	rm -rv devkit.in
 }
 
 func_repo_list(){
@@ -190,10 +199,6 @@ func_repo_list(){
 		echo "No local repo set!"
 		exit 1
 	else
-		#
-		# Should add loop to read pkg headers
-		# to view PACKAGE -> INFO
-		#
 		ls $REPO_PATH
 	fi
 }
@@ -217,14 +222,10 @@ func_repo_install(){
 	fi
 	NAME="${FILE%.*}"
 	cd $REPO_PATH
-	tar -xf $FILE
-	for file in "$NAME"/*;do
-		if [ -d "$file" ];then
-			cp -rPv $file $INSTALL_PREFIX/
-		fi
-	done
-	echo "Removing temporary directory $NAME"
-	rm -r $REPO_PATH/$NAME
+	mkdir -v devkit.in
+	tar -xf $FILE -C devkit.in
+	source devkit.in/INSTALL
+	rm -rv devkit.in
 }
 
 case $1 in

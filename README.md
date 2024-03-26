@@ -1,17 +1,15 @@
 # DevKit
 
 ### Install
-From directory **devkit-1.1** run **`sudo ./install.sh`**<br>
+From directory **devkit-2.0** run **`sudo ./install.sh`**<br>
 > [!IMPORTANT]
-> DevKit is only installable via the pre-built package (devkit-1.1)<br>
+> DevKit is only installable via the pre-built package (devkit-2.0)<br>
 > This is done so DevKit can build itself.
 
-
-### Settings
-Change settings in: ```/usr/local/etc/devkit.conf```
-##### Default settings<br>
-> INSTALL_PREFIX="/usr/local"<br>
-> REPO_PATH=""
+<br>
+> ### Settings
+> Set REPO_PATH in: ```/usr/local/etc/devkit.conf```<br>
+> to setup a local repository.
 
 ### Usage
 ```
