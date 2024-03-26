@@ -6,7 +6,7 @@
 # Website:     https://github.com/william-andersson
 # License:     GPL
 #
-VERSION=2.0
+VERSION=2.1
 source /usr/local/etc/devkit.conf
 echo "DevKit $VERSION (Shell-script project manager)"
 
@@ -117,7 +117,7 @@ func_build(){
 			exit 1
 		else
 			rm -rv $PWD/builds/$APP_NAME-$APP_VERSION/content
-			rm -rv $PWD/builds/$APP_NAME-$APP_VERSION/INSTALL
+			rm -rv $PWD/builds/$APP_NAME-$APP_VERSION/install.sh
 			rm -rv $PWD/builds/$APP_NAME-$APP_VERSION/$APP_NAME-$APP_VERSION.pkg
 			rm -rv $PWD/builds/$APP_NAME-$APP_VERSION/$APP_NAME-$APP_VERSION-src.tar
 		fi
@@ -127,6 +127,18 @@ func_build(){
 	#
 	echo "Building package of current version ($APP_VERSION)."
 	mkdir -v $PWD/builds/$APP_NAME-$APP_VERSION/content
+cat > $PWD/builds/$APP_NAME-$APP_VERSION/install.sh <<endmsg
+#!/bin/bash
+if [[ \$EUID -ne 0 ]]; then
+   echo "This script must be run as root"
+   exit 1
+fi
+if ! [[ "\${BASH_SOURCE[0]}" == "\${0}" ]];then
+	PREFIX="devkit.in"
+else
+	PREFIX="\$PWD"
+fi
+endmsg
 	for path in ${STATIC_FILES[@]};do
 		IFS=';' read -ra values <<< "$path"
 		if [ "${values[0]}" == "$APP_NAME.sh" ];then
@@ -134,11 +146,11 @@ func_build(){
 			# Prepare STATIC_FILES; Always install
 			# If $NAME.sh change VERSION to APP_VERSION
 			#
-			echo "install -v -D -C devkit.in/content/${values[0]} ${values[1]}" >> $PWD/builds/$APP_NAME-$APP_VERSION/INSTALL
+			echo "install -v -D -C \$PREFIX/content/${values[0]} ${values[1]}" >> $PWD/builds/$APP_NAME-$APP_VERSION/install.sh
 			cp -v ${values[0]} $PWD/builds/$APP_NAME-$APP_VERSION/content
 			sed -i '0,/#(SET BY: build.cfg)/s//'$APP_VERSION'/' $PWD/builds/$APP_NAME-$APP_VERSION/content/$APP_NAME.sh
 		else
-			echo "install -v -D -C devkit.in/content/${values[0]} ${values[1]}" >> $PWD/builds/$APP_NAME-$APP_VERSION/INSTALL
+			echo "install -v -D -C \$PREFIX/content/${values[0]} ${values[1]}" >> $PWD/builds/$APP_NAME-$APP_VERSION/install.sh
 			cp -v ${values[0]} $PWD/builds/$APP_NAME-$APP_VERSION/content
 		fi
 	done
@@ -147,7 +159,7 @@ func_build(){
 		# Prepare ACTIVE_FILES; Install if none exist
 		#
 		IFS=';' read -ra values <<< "$path"
-		echo "cp -pnv devkit.in/content/${values[0]} ${values[1]}" >> $PWD/builds/$APP_NAME-$APP_VERSION/INSTALL
+		echo "cp -pnv \$PREFIX/content/${values[0]} ${values[1]}" >> $PWD/builds/$APP_NAME-$APP_VERSION/install.sh
 		cp -v ${values[0]} $PWD/builds/$APP_NAME-$APP_VERSION/content
 	done
 	#
@@ -161,16 +173,13 @@ func_build(){
 		# Don't package devkit
 		#
 		cd $PWD/builds/$APP_NAME-$APP_VERSION
-		tar -cvf $APP_NAME-$APP_VERSION.pkg content INSTALL
+		tar -cvf $APP_NAME-$APP_VERSION.pkg content install.sh
 		if [ "$REPO_PATH" != "" ];then
 			if [ ! -d "$REPO_PATH" ];then
 				mkdir -pv $REPO_PATH
 			fi
 			cp -pv $APP_NAME-$APP_VERSION.pkg $REPO_PATH/$APP_NAME-$APP_VERSION.pkg
 		fi
-	else
-		# Copy DevKit install file
-		cp -v install.sh $PWD/builds/$APP_NAME-$APP_VERSION/
 	fi
 }
 
@@ -191,7 +200,7 @@ func_install(){
 	NAME="${FILE%.*}"
 	mkdir -v devkit.in
 	tar -xf $FILE -C devkit.in
-	source devkit.in/INSTALL
+	source devkit.in/install.sh
 	rm -rv devkit.in
 }
 
@@ -225,7 +234,7 @@ func_repo_install(){
 	cd $REPO_PATH
 	mkdir -v devkit.in
 	tar -xf $FILE -C devkit.in
-	source devkit.in/INSTALL
+	source devkit.in/install.sh
 	rm -rv devkit.in
 }
 

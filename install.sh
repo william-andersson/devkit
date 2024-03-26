@@ -3,12 +3,10 @@ if [[ $EUID -ne 0 ]]; then
    echo "This script must be run as root"
    exit 1
 fi
-if [ -f "$PWD/build.cfg" ];then
-		echo "Can't install DevKit from source!"
-		exit 1
+if ! [[ "${BASH_SOURCE[0]}" == "${0}" ]];then
+	PREFIX="devkit.in"
+else
+	PREFIX="$PWD"
 fi
-install -v -C -m 775 -o root $PWD/content/devkit.sh /usr/local/bin/devkit
-if [ ! -f "/usr/local/etc/devkit.conf" ];then
-	install -v -D -C -m 664 -o root $PWD/content/devkit.conf /usr/local/etc/devkit.conf
-fi
-echo "Done."
+install -v -D -C $PREFIX/content/devkit.sh /usr/local/bin/devkit
+cp -pnv $PREFIX/content/devkit.conf /usr/local/etc/devkit.conf
