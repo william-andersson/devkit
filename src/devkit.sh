@@ -71,7 +71,11 @@ exit 0
 }
 
 func_update_devkit(){
-	wget wget https://github.com/william-andersson/devkit/raw/main/update/current.pkg
+	if [[ $EUID -ne 0 ]]; then
+		echo "Must be root!"
+		exit 1
+	fi
+	wget https://github.com/william-andersson/devkit/raw/main/update/current.pkg
 	func_install current.pkg
 	rm -v current.pkg
 	devkit --version
@@ -222,7 +226,6 @@ func_install(){
 	source devkit.in/install.sh
 	rm -rv devkit.in
 	echo "Done."
-	exit 0
 }
 
 func_repo_list(){
@@ -232,7 +235,6 @@ func_repo_list(){
 	else
 		ls $REPO_PATH
 	fi
-	exit 0
 }
 
 func_repo_install(){
@@ -259,7 +261,6 @@ func_repo_install(){
 	source devkit.in/install.sh
 	rm -rv devkit.in
 	echo "Done."
-	exit 0
 }
 
 case $1 in
