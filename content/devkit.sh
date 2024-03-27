@@ -71,7 +71,7 @@ exit 0
 }
 
 func_update_devkit(){
-	wget https://raw.githubusercontent.com/william-andersson/devkit/main/update/current.pkg
+	wget wget https://github.com/william-andersson/devkit/raw/main/update/current.pkg
 	func_install current.pkg
 	rm -v current.pkg
 	devkit --version
