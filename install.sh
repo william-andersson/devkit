@@ -1,12 +1,14 @@
 #!/bin/bash
 if [[ $EUID -ne 0 ]]; then
-   echo "This script must be run as root"
-   exit 1
+    echo "This script must be run as root"
+    exit 1
 fi
 if ! [[ "${BASH_SOURCE[0]}" == "${0}" ]];then
-	PREFIX="devkit.in"
+    # If installed via DevKit
+    # https://github.com/william-andersson/devkit
+    PREFIX="devkit.in"
 else
-	PREFIX="$PWD"
+    PREFIX="$PWD"
 fi
 install -v -D -C $PREFIX/content/devkit.sh /usr/local/bin/devkit
 cp -pnv $PREFIX/content/devkit.conf /usr/local/etc/devkit.conf

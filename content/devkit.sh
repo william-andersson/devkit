@@ -6,7 +6,7 @@
 # Website:     https://github.com/william-andersson
 # License:     GPL
 #
-VERSION=2.2
+VERSION=2.3
 source /usr/local/etc/devkit.conf
 echo "DevKit $VERSION (Shell-script project manager)"
 
@@ -68,6 +68,14 @@ STATIC_FILES=("$NAME.sh;/usr/local/bin/$NAME")
 ACTIVE_FILES=("")
 DEPENDENCIES=("")
 endmsg
+exit 0
+}
+
+func_update_version(){
+	echo "Current version: $APP_VERSION"
+	read -p "New version: " NEW_VER
+	sed -i '0,/APP_VERSION='$APP_VERSION'/s//APP_VERSION='$NEW_VER'/' $PWD/build.cfg
+	func_build
 }
 
 func_snap(){
@@ -92,8 +100,10 @@ func_snap(){
 	#
 	INDEX=$(cat $PWD/builds/$APP_NAME-$APP_VERSION/snapshots/index)
 	echo "Creating snapshot [$INDEX] of current version ($APP_VERSION)."
-	tar --exclude='builds' -cvf $PWD/builds/$APP_NAME-$APP_VERSION/snapshots/snapshot-$INDEX.tar *
+	tar --exclude='builds' -cvf $PWD/builds/$APP_NAME-$APP_VERSION/snapshots/snapshot-$INDEX-$(date +%d%m%y_%H%M).tar *
 	echo "$((INDEX+1))" > $PWD/builds/$APP_NAME-$APP_VERSION/snapshots/index
+	echo "Done."
+	exit 0
 }
 
 func_build(){
@@ -110,15 +120,17 @@ func_build(){
 		mkdir -pv $PWD/builds/$APP_NAME-$APP_VERSION
 	fi
 	if [ -f "$PWD/builds/$APP_NAME-$APP_VERSION/$APP_NAME-$APP_VERSION.pkg" ];then
-		echo -e "\033[31mWarning, a package with version $APP_VERSION already exists!\033[0m"
-		read -p "Overwrite [y/n]? " QUEST
-		if [ $QUEST != "y" ];then
-			echo -e "\nAborted."
-			exit 1
-		else
-			rm -rv $PWD/builds/$APP_NAME-$APP_VERSION/$APP_NAME-$APP_VERSION.pkg
-			rm -rv $PWD/builds/$APP_NAME-$APP_VERSION/$APP_NAME-$APP_VERSION-src.tar
-		fi
+		echo -e "\033[91mWarning, a package with version $APP_VERSION already exists!\033[0m"
+		echo -e "Update version, Overwrite or Abort?"
+		select INPUT in "Update" "Overwrite" "Abort"; do
+    		case $INPUT in
+        		Update ) func_update_version; break;;
+        		Overwrite ) rm -rv $PWD/builds/$APP_NAME-$APP_VERSION/$APP_NAME-$APP_VERSION.pkg;
+        					rm -rv $PWD/builds/$APP_NAME-$APP_VERSION/$APP_NAME-$APP_VERSION-src.tar;
+        					break;;
+        		Abort ) echo -e "\nAborted."; exit;;
+    		esac
+		done
 	fi
 	#
 	# Create directory and add files.
@@ -128,13 +140,15 @@ func_build(){
 cat > $PWD/builds/$APP_NAME-$APP_VERSION/install.sh <<endmsg
 #!/bin/bash
 if [[ \$EUID -ne 0 ]]; then
-   echo "This script must be run as root"
-   exit 1
+    echo "This script must be run as root"
+    exit 1
 fi
 if ! [[ "\${BASH_SOURCE[0]}" == "\${0}" ]];then
-	PREFIX="devkit.in"
+    # If installed via DevKit
+    # https://github.com/william-andersson/devkit
+    PREFIX="devkit.in"
 else
-	PREFIX="\$PWD"
+    PREFIX="\$PWD"
 fi
 endmsg
 	for path in ${STATIC_FILES[@]};do
@@ -177,6 +191,8 @@ endmsg
 	cd ../..
 	rm -rv $PWD/builds/$APP_NAME-$APP_VERSION/content
 	rm -rv $PWD/builds/$APP_NAME-$APP_VERSION/install.sh
+	echo "Done."
+	exit 0
 }
 
 func_install(){
@@ -198,6 +214,8 @@ func_install(){
 	tar -xf $FILE -C devkit.in
 	source devkit.in/install.sh
 	rm -rv devkit.in
+	echo "Done."
+	exit 0
 }
 
 func_repo_list(){
@@ -207,6 +225,7 @@ func_repo_list(){
 	else
 		ls $REPO_PATH
 	fi
+	exit 0
 }
 
 func_repo_install(){
@@ -232,6 +251,8 @@ func_repo_install(){
 	tar -xf $FILE -C devkit.in
 	source devkit.in/install.sh
 	rm -rv devkit.in
+	echo "Done."
+	exit 0
 }
 
 case $1 in
