@@ -19,3 +19,8 @@ VERSION 2.3
 - Added comment to package install.sh.
 - Changed warning message color.
 - Added date to snapshots.
+
+VERSION 2.4
+- Formatted help text.
+- Added --version option.
+- Added --update feature.

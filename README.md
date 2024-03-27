@@ -10,14 +10,13 @@ Run **`sudo ./install.sh`**<br>
 ### Usage
 ```
 devkit <OPTION>
---new <NAME>                 New project.
-                             Setup new project from template.
---snap                       Create snapshot.
-                             Make a snapshot of current source version.
---build                      Create package.
-                             Create distributable package from source.
---install <PACKAGE>          Install package.
-                             Install package from current directory.
+--new <NAME>                 Setup new project from template.
+--snap                       Make a snapshot of current source version.
+--build                      Create distributable package from source.
+--install <PACKAGE>          Install package from current directory.
+--update                     Update DevKit to latest version.
+--version                    Print installed version.
+--help                       Print this help text.
 
 If REPO_PATH is set in /usr/local/etc/devkit.conf
 --repo-list                  List packages in local repository.
@@ -25,9 +24,4 @@ If REPO_PATH is set in /usr/local/etc/devkit.conf
 ```
 
 > [!NOTE]
-> ### Version 2
-> * Places both snapshots and builds in the same directory.
-> * New package and install structure.
-> * Renamed and added variables in build.cfg
-> * Code clean up
-> * Bug fixes
+> Update function requires version 2.4 and above.

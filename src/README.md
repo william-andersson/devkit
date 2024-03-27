@@ -1,29 +1,27 @@
 # DevKit
 
 ### Install
-From directory **devkit-2.0** run **`sudo ./install.sh`**<br>
-> [!IMPORTANT]
-> DevKit is only installable via the pre-built package (devkit-2.0)<br>
-> This is done so DevKit can build itself.
+Run **`sudo ./install.sh`**<br>
 
-<br>
-> ### Settings
+### Settings
 > Set REPO_PATH in: ```/usr/local/etc/devkit.conf```<br>
 > to setup a local repository.
 
 ### Usage
 ```
 devkit <OPTION>
---new <NAME>                 New project.
-                             Setup new project from template.
---snap                       Create snapshot.
-                             Make a snapshot of current source version.
---build                      Create package.
-                             Create distributable package from source.
---install <PACKAGE>          Install package.
-                             Install package from current directory.
+--new <NAME>                 Setup new project from template.
+--snap                       Make a snapshot of current source version.
+--build                      Create distributable package from source.
+--install <PACKAGE>          Install package from current directory.
+--update                     Update DevKit to latest version.
+--version                    Print installed version.
+--help                       Print this help text.
 
 If REPO_PATH is set in /usr/local/etc/devkit.conf
 --repo-list                  List packages in local repository.
 --repo-install <PACKAGE>     Install package from local repository.
 ```
+
+> [!NOTE]
+> Update function requires version 2.4 and above.

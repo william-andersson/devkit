@@ -8,21 +8,20 @@
 #
 VERSION=#(SET BY: build.cfg)
 source /usr/local/etc/devkit.conf
-echo "DevKit $VERSION (Shell-script project manager)"
 
 func_help(){
 cat <<EOF
+DevKit $VERSION (Shell-script project manager)
 Usage: $0 <OPTION>
 
 Options:
---new <NAME>                 New project.
-                             Setup new project from template.
---snap                       Create snapshot.
-                             Make a snapshot of current source version.
---build                      Create package.
-                             Create distributable package from source.
---install <PACKAGE>          Install package.
-                             Install package from current directory.
+--new <NAME>                 Setup new project from template.
+--snap                       Make a snapshot of current source version.
+--build                      Create distributable package from source.
+--install <PACKAGE>          Install package from current directory.
+--update                     Update DevKit to latest version.
+--version                    Print installed version.
+--help                       Print this help text.
 
 If REPO_PATH is set in /usr/local/etc/devkit.conf
 --repo-list                  List packages in local repository.
@@ -69,6 +68,14 @@ ACTIVE_FILES=("")
 DEPENDENCIES=("")
 endmsg
 exit 0
+}
+
+func_update_devkit(){
+	wget https://raw.githubusercontent.com/william-andersson/devkit/main/update/current.pkg
+	func_install current.pkg
+	rm -v current.pkg
+	devkit --version
+	exit 0
 }
 
 func_update_version(){
@@ -273,6 +280,14 @@ case $1 in
 		;;
 	--repo-list)
 		func_repo_list
+		;;
+	--update)
+		func_update_devkit
+		exit 0
+		;;
+	--version)
+		echo "Version: $VERSION"
+		exit 0
 		;;
 	--help)
 		func_help
