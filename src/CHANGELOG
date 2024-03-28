@@ -1,26 +1,30 @@
-VERSION 1.1
-- Added DevKit itself to devkit environment.
-- Built itself once to be able to install it.
-
 VERSION 2.0
-- New package and install structure.
-- Combine snapshots and package dir.
-- Code clean up.
++  Changed
+    - New package and install structure.
+    - Combine snapshots and package dir.
++  Code cleanup.
 
 VERSION 2.1
-- New installer script that also works for DevKit.
++  Changed
+    - New installer script that also works for DevKit.
 
 VERSION 2.2
-- Package DevKit as all other projects.
-- Remove content dir and install.sh after package is built.
++  Added
+    - Package DevKit as all other projects.
++  Changed
+    - Remove content dir and install.sh after package is built.
 
 VERSION 2.3
-- Give options if package version exists.
-- Added comment to package install.sh.
-- Changed warning message color.
-- Added date to snapshots.
++  Added
+    - Give options if package version exists.
+    - Added comment to package install.sh.
++  Updated
+    - Snapshot names now contain date too.
+    - Warning message color.
 
 VERSION 2.4
-- Formatted help text.
-- Added --version option.
-- Added --update feature.
++  Added
+    - Option to print version.
+    - Update feature to automatically update DevKit.
++  Updated
+    - Formatted help text.
