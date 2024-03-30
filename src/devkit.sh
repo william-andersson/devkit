@@ -81,7 +81,7 @@ func_update_devkit(){
 	VERSION_MAJOR=$(echo $VERSION | awk -F '.' '{print $1}')
 	VERSION_MINOR=$(echo $VERSION | awk -F '.' '{print $2}')
 	
-	if [ $CURRENT_MINOR -gt $VERSION_MINOR ] || [ $CURRENT_MAJOR -gt $VERSION_MAJOR ];then
+	if [ $CURRENT_MAJOR -gt $VERSION_MAJOR ] || [ $CURRENT_MINOR -gt $VERSION_MINOR ];then
         wget https://github.com/william-andersson/devkit/raw/main/update/current.pkg
 	    func_install current.pkg
 	    rm -v current.pkg
