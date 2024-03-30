@@ -28,3 +28,7 @@ VERSION 2.4
     - Update feature to automatically update DevKit.
 +  Updated
     - Formatted help text.
+
+VERSION 2.5
++  Updated
+    - Version checking before update.

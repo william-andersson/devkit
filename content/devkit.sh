@@ -6,7 +6,7 @@
 # Website:     https://github.com/william-andersson
 # License:     GPL
 #
-VERSION=2.4
+VERSION=2.5
 source /usr/local/etc/devkit.conf
 
 func_help(){
@@ -75,11 +75,22 @@ func_update_devkit(){
 		echo "Must be root!"
 		exit 1
 	fi
-	wget https://github.com/william-andersson/devkit/raw/main/update/current.pkg
-	func_install current.pkg
-	rm -v current.pkg
-	devkit --version
-	exit 0
+	CURRENT=$(wget -qO- https://raw.githubusercontent.com/william-andersson/devkit/main/update/VERSION)
+	CURRENT_MAJOR=$(echo $CURRENT | awk -F '.' '{print $1}')
+	CURRENT_MINOR=$(echo $CURRENT | awk -F '.' '{print $2}')
+	VERSION_MAJOR=$(echo $VERSION | awk -F '.' '{print $1}')
+	VERSION_MINOR=$(echo $VERSION | awk -F '.' '{print $2}')
+	
+	if [ $CURRENT_MINOR -gt $VERSION_MINOR ] || [ $CURRENT_MAJOR -gt $VERSION_MAJOR ];then
+        wget https://github.com/william-andersson/devkit/raw/main/update/current.pkg
+	    func_install current.pkg
+	    rm -v current.pkg
+	    echo "Updated version: $(devkit --version)."
+	    exit 0
+	else
+	    echo "DevKit is up to date."
+	    exit 0
+	fi
 }
 
 func_update_version(){
