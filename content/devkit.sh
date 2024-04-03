@@ -6,7 +6,7 @@
 # Website:     https://github.com/william-andersson
 # License:     GPL
 #
-VERSION=2.5
+VERSION=3.0.0
 source /usr/local/etc/devkit.conf
 
 func_help(){
@@ -19,7 +19,6 @@ Options:
 --snap                       Make a snapshot of current source version.
 --build                      Create distributable package from source.
 --install <PACKAGE>          Install package from current directory.
---update                     Update DevKit to latest version.
 --version                    Print installed version.
 --help                       Print this help text.
 
@@ -38,7 +37,7 @@ func_new(){
 		NAME=$1
 	fi
 	mkdir -v $PWD/$NAME
-	touch $PWD/$NAME/NOTES
+	touch $PWD/$NAME/TODO
 	touch $PWD/$NAME/README
 	touch $PWD/$NAME/CHANGELOG
 	
@@ -62,35 +61,12 @@ cat > $PWD/$NAME/build.cfg <<endmsg
 # DEPENDENCIES = list of dependencies
 #
 APP_NAME=$NAME
-APP_VERSION=1.0
+APP_VERSION=1.0.0
 STATIC_FILES=("$NAME.sh;/usr/local/bin/$NAME")
 ACTIVE_FILES=("")
 DEPENDENCIES=("")
 endmsg
 exit 0
-}
-
-func_update_devkit(){
-	if [[ $EUID -ne 0 ]]; then
-		echo "Must be root!"
-		exit 1
-	fi
-	CURRENT=$(wget -qO- https://raw.githubusercontent.com/william-andersson/devkit/main/update/VERSION)
-	CURRENT_MAJOR=$(echo $CURRENT | awk -F '.' '{print $1}')
-	CURRENT_MINOR=$(echo $CURRENT | awk -F '.' '{print $2}')
-	VERSION_MAJOR=$(echo $VERSION | awk -F '.' '{print $1}')
-	VERSION_MINOR=$(echo $VERSION | awk -F '.' '{print $2}')
-	
-	if [ $CURRENT_MAJOR -gt $VERSION_MAJOR ] || [ $CURRENT_MINOR -gt $VERSION_MINOR ];then
-        wget https://github.com/william-andersson/devkit/raw/main/update/current.pkg
-	    func_install current.pkg
-	    rm -v current.pkg
-	    echo "Updated version: $(devkit --version)."
-	    exit 0
-	else
-	    echo "DevKit is up to date."
-	    exit 0
-	fi
 }
 
 func_update_version(){

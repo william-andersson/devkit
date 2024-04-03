@@ -14,7 +14,6 @@ devkit <OPTION>
 --snap                       Make a snapshot of current source version.
 --build                      Create distributable package from source.
 --install <PACKAGE>          Install package from current directory.
---update                     Update DevKit to latest version.
 --version                    Print installed version.
 --help                       Print this help text.
 
@@ -24,4 +23,4 @@ If REPO_PATH is set in /usr/local/etc/devkit.conf
 ```
 
 > [!NOTE]
-> Update function requires version 2.4 and above.
+> Update function removed

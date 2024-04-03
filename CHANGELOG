@@ -32,3 +32,10 @@ VERSION 2.4
 VERSION 2.5
 +  Updated
     - Version checking before update.
+    
+VERSION 3.0.0
++  Removed
+    - Update feature.
++  Changed
+    - Switched to semantic versioning.
+    - NOTES renamed to TODO.
